@@ -14,17 +14,37 @@ interface FormData {
 }
 
 interface BenchmarkResult {
-  categoryAverage: {
-    conversionRate: number
-    ltv: number
-    refundRate: number
+  pricing: {
+    user: number
+    benchmark: number
+    diff: string
   }
-  comparison: {
-    conversionRate: 'above' | 'below' | 'average'
-    ltv: 'above' | 'below' | 'average'
-    refundRate: 'above' | 'below' | 'average'
+  conversion: {
+    user: number
+    benchmark: number
+    diff: string
   }
-  recommendations: string[]
+  ltv: {
+    user: number
+    benchmark: number
+    diff: string
+  }
+  refund: {
+    user: number
+    benchmark: number
+    diff: string
+  }
+}
+
+interface ApiResponse {
+  success: boolean
+  results: BenchmarkResult
+  recommendations: {
+    type: string
+    priority: string
+    message: string
+    action: string
+  }[]
 }
 
 function App() {
@@ -41,36 +61,31 @@ function App() {
     email: ''
   })
   const [results, setResults] = useState<BenchmarkResult | null>(null)
+  const [recommendations, setRecommendations] = useState<{type: string, priority: string, message: string, action: string}[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const categories = [
-    'Games',
-    'Health & Fitness',
-    'Productivity',
-    'Entertainment',
     'Education',
-    'Social Networking',
+    'Health & Fitness', 
+    'Lifestyle',
     'Photo & Video',
-    'Music',
-    'Business',
+    'Productivity',
     'Utilities'
   ]
 
   const regions = [
-    'North America',
-    'Europe',
-    'Asia Pacific',
-    'Latin America',
-    'Middle East & Africa'
+    'US',
+    'Europe', 
+    'APAC',
+    'LATAM',
+    'MEA'
   ]
 
   const planTypes = [
-    'Freemium',
-    'Premium',
-    'Subscription',
-    'One-time Purchase',
-    'In-app Purchases'
+    'weekly',
+    'monthly',
+    'annual'
   ]
 
   const updateFormData = (field: keyof FormData, value: any) => {
@@ -95,8 +110,14 @@ function App() {
     
     try {
       const response = await axios.post('/api/benchmark', formData)
-      setResults(response.data)
-      nextStep()
+      const data: ApiResponse = response.data
+      if (data.success) {
+        setResults(data.results)
+        setRecommendations(data.recommendations)
+        nextStep()
+      } else {
+        setError('Failed to get benchmark results')
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || 'An error occurred while processing your request')
     } finally {
