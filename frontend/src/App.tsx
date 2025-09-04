@@ -14,37 +14,17 @@ interface FormData {
 }
 
 interface BenchmarkResult {
-  pricing: {
-    user: number
-    benchmark: number
-    diff: string
+  categoryAverage: {
+    conversionRate: number
+    ltv: number
+    refundRate: number
   }
-  conversion: {
-    user: number
-    benchmark: number
-    diff: string
+  comparison: {
+    conversionRate: 'above' | 'below' | 'average'
+    ltv: 'above' | 'below' | 'average'
+    refundRate: 'above' | 'below' | 'average'
   }
-  ltv: {
-    user: number
-    benchmark: number
-    diff: string
-  }
-  refund: {
-    user: number
-    benchmark: number
-    diff: string
-  }
-}
-
-interface ApiResponse {
-  success: boolean
-  results: BenchmarkResult
-  recommendations: {
-    type: string
-    priority: string
-    message: string
-    action: string
-  }[]
+  recommendations: string[]
 }
 
 function App() {
@@ -61,32 +41,76 @@ function App() {
     email: ''
   })
   const [results, setResults] = useState<BenchmarkResult | null>(null)
-  const [recommendations, setRecommendations] = useState<{type: string, priority: string, message: string, action: string}[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const categories = [
-    'Education',
-    'Health & Fitness', 
-    'Lifestyle',
-    'Photo & Video',
+    'Games',
+    'Health & Fitness',
     'Productivity',
+    'Entertainment',
+    'Education',
+    'Social Networking',
+    'Photo & Video',
+    'Music',
+    'Business',
     'Utilities'
   ]
 
   const regions = [
-    'US',
-    'Europe', 
-    'APAC',
-    'LATAM',
-    'MEA'
+    'North America',
+    'Europe',
+    'Asia Pacific',
+    'Latin America',
+    'Middle East & Africa'
   ]
 
   const planTypes = [
-    'weekly',
-    'monthly',
-    'annual'
+    'Freemium',
+    'Premium',
+    'Subscription',
+    'One-time Purchase',
+    'In-app Purchases'
   ]
+
+  // Mapping functions to translate UI values to backend values
+  const mapCategoryToBackend = (category: string): string => {
+    const mapping: { [key: string]: string } = {
+      'Games': 'Utilities',
+      'Health & Fitness': 'Health & Fitness',
+      'Productivity': 'Productivity',
+      'Entertainment': 'Lifestyle',
+      'Education': 'Education',
+      'Social Networking': 'Lifestyle',
+      'Photo & Video': 'Photo & Video',
+      'Music': 'Lifestyle',
+      'Business': 'Productivity',
+      'Utilities': 'Utilities'
+    }
+    return mapping[category] || 'Utilities'
+  }
+
+  const mapRegionToBackend = (region: string): string => {
+    const mapping: { [key: string]: string } = {
+      'North America': 'US',
+      'Europe': 'Europe',
+      'Asia Pacific': 'APAC',
+      'Latin America': 'LATAM',
+      'Middle East & Africa': 'MEA'
+    }
+    return mapping[region] || 'US'
+  }
+
+  const mapPlanTypeToBackend = (planType: string): string => {
+    const mapping: { [key: string]: string } = {
+      'Freemium': 'monthly',
+      'Premium': 'annual',
+      'Subscription': 'monthly',
+      'One-time Purchase': 'annual',
+      'In-app Purchases': 'weekly'
+    }
+    return mapping[planType] || 'monthly'
+  }
 
   const updateFormData = (field: keyof FormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -109,16 +133,48 @@ function App() {
     setError(null)
     
     try {
-      const response = await axios.post('/api/benchmark', formData)
-      const data: ApiResponse = response.data
-      if (data.success) {
-        setResults(data.results)
-        setRecommendations(data.recommendations)
+      // Map frontend data to backend format
+      const backendData = {
+        category: mapCategoryToBackend(formData.category),
+        region: mapRegionToBackend(formData.region),
+        planType: mapPlanTypeToBackend(formData.planType),
+        price: formData.price,
+        conversionRate: formData.conversionRate,
+        ltv: formData.ltv,
+        refundRate: formData.refundRate,
+        email: formData.email,
+        hasTrial: formData.hasTrial
+      }
+
+      const response = await axios.post('/api/benchmark', backendData)
+      
+      if (response.data.success) {
+        // Transform backend response to frontend format
+        const backendResults = response.data.results
+        const transformedResults: BenchmarkResult = {
+          categoryAverage: {
+            conversionRate: backendResults.conversion.benchmark,
+            ltv: backendResults.ltv.benchmark,
+            refundRate: backendResults.refund.benchmark
+          },
+          comparison: {
+            conversionRate: parseFloat(backendResults.conversion.diff) > 5 ? 'above' : 
+                           parseFloat(backendResults.conversion.diff) < -5 ? 'below' : 'average',
+            ltv: parseFloat(backendResults.ltv.diff) > 5 ? 'above' : 
+                 parseFloat(backendResults.ltv.diff) < -5 ? 'below' : 'average',
+            refundRate: parseFloat(backendResults.refund.diff) > 5 ? 'above' : 
+                       parseFloat(backendResults.refund.diff) < -5 ? 'below' : 'average'
+          },
+          recommendations: response.data.recommendations.map((rec: any) => rec.message)
+        }
+        
+        setResults(transformedResults)
         nextStep()
       } else {
         setError('Failed to get benchmark results')
       }
     } catch (err: any) {
+      console.error('API Error:', err)
       setError(err.response?.data?.error || 'An error occurred while processing your request')
     } finally {
       setIsLoading(false)
@@ -179,7 +235,7 @@ function App() {
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
                     step <= currentStep
-                      ? 'bg-primary-600 text-white'
+                      ? 'bg-blue-600 text-white'
                       : 'bg-gray-200 text-gray-600'
                   }`}
                 >
@@ -188,7 +244,7 @@ function App() {
                 {step < 4 && (
                   <div
                     className={`w-16 h-1 mx-2 ${
-                      step < currentStep ? 'bg-primary-600' : 'bg-gray-200'
+                      step < currentStep ? 'bg-blue-600' : 'bg-gray-200'
                     }`}
                   />
                 )}
@@ -220,7 +276,7 @@ function App() {
                   <select
                     value={formData.category}
                     onChange={(e) => updateFormData('category', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   >
                     <option value="">Select a category</option>
@@ -237,7 +293,7 @@ function App() {
                   <select
                     value={formData.region}
                     onChange={(e) => updateFormData('region', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   >
                     <option value="">Select a region</option>
@@ -254,7 +310,7 @@ function App() {
                   <select
                     value={formData.planType}
                     onChange={(e) => updateFormData('planType', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   >
                     <option value="">Select monetization model</option>
@@ -275,7 +331,7 @@ function App() {
                     placeholder="e.g., 9.99"
                     step="0.01"
                     min="0"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -287,7 +343,7 @@ function App() {
                   id="hasTrial"
                   checked={formData.hasTrial}
                   onChange={(e) => updateFormData('hasTrial', e.target.checked)}
-                  className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                  className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
                 <label htmlFor="hasTrial" className="text-sm font-medium text-gray-700">
                   Offers free trial or freemium version
@@ -298,7 +354,7 @@ function App() {
                 <button
                   onClick={nextStep}
                   disabled={!formData.category || !formData.region || !formData.planType || formData.price === ''}
-                  className="px-6 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
                   Next Step
                 </button>
@@ -326,7 +382,7 @@ function App() {
                     step="0.01"
                     min="0"
                     max="100"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                   <p className="text-xs text-gray-500 mt-1">
@@ -345,7 +401,7 @@ function App() {
                     placeholder="e.g., 25.50"
                     step="0.01"
                     min="0"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                   <p className="text-xs text-gray-500 mt-1">
@@ -365,7 +421,7 @@ function App() {
                     step="0.01"
                     min="0"
                     max="100"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                   <p className="text-xs text-gray-500 mt-1">
@@ -384,7 +440,7 @@ function App() {
                 <button
                   onClick={nextStep}
                   disabled={formData.conversionRate === '' || formData.ltv === '' || formData.refundRate === ''}
-                  className="px-6 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
                   Next Step
                 </button>
@@ -423,7 +479,7 @@ function App() {
                   value={formData.email}
                   onChange={(e) => updateFormData('email', e.target.value)}
                   placeholder="your.email@example.com"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -447,7 +503,7 @@ function App() {
                 <button
                   onClick={handleSubmit}
                   disabled={!formData.email || isLoading}
-                  className="px-6 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
                 >
                   {isLoading ? (
                     <>
@@ -501,7 +557,7 @@ function App() {
                     <h4 className="text-lg font-semibold text-gray-900 mb-2">
                       Conversion Rate
                     </h4>
-                    <div className="text-3xl font-bold text-primary-600 mb-1">
+                    <div className="text-3xl font-bold text-blue-600 mb-1">
                       {formData.conversionRate}%
                     </div>
                     <div className="text-sm text-gray-500 mb-3">
@@ -518,7 +574,7 @@ function App() {
                     <h4 className="text-lg font-semibold text-gray-900 mb-2">
                       Customer LTV
                     </h4>
-                    <div className="text-3xl font-bold text-primary-600 mb-1">
+                    <div className="text-3xl font-bold text-blue-600 mb-1">
                       ${formData.ltv}
                     </div>
                     <div className="text-sm text-gray-500 mb-3">
@@ -535,7 +591,7 @@ function App() {
                     <h4 className="text-lg font-semibold text-gray-900 mb-2">
                       Refund Rate
                     </h4>
-                    <div className="text-3xl font-bold text-primary-600 mb-1">
+                    <div className="text-3xl font-bold text-blue-600 mb-1">
                       {formData.refundRate}%
                     </div>
                     <div className="text-sm text-gray-500 mb-3">
@@ -549,14 +605,14 @@ function App() {
               </div>
 
               {/* Recommendations */}
-              <div className="bg-white border-2 border-primary-100 rounded-lg p-6">
+              <div className="bg-white border-2 border-blue-100 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Personalized Recommendations
                 </h3>
                 <ul className="space-y-3">
                   {results.recommendations.map((recommendation, index) => (
                     <li key={index} className="flex items-start space-x-3">
-                      <span className="flex-shrink-0 w-6 h-6 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                      <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
                         {index + 1}
                       </span>
                       <span className="text-gray-700">{recommendation}</span>
@@ -579,7 +635,7 @@ function App() {
               <div className="flex justify-center">
                 <button
                   onClick={resetForm}
-                  className="px-6 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                 >
                   Analyze Another App
                 </button>
