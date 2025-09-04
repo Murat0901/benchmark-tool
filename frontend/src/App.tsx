@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, TrendingUp, TrendingDown, Minus, ArrowRight } from 'lucide-react';
 
-// Adapty raporundan çıkarılan benchmark veriler
+// Benchmark data extracted from Adapty report
 const BENCHMARKS = {
   conversion: {
     'Education': { installTrial: 6.83, trialPaid: 29.31, installPaid: 0.83 },
@@ -90,6 +90,22 @@ const BenchmarkTool = () => {
     setStep(4);
   };
 
+  const resetForm = () => {
+    setStep(1);
+    setFormData({
+      category: '',
+      region: '',
+      planType: '',
+      price: '',
+      hasTrial: false,
+      email: '',
+      conversionRate: '',
+      ltv: '',
+      refundRate: ''
+    });
+    setResults(null);
+  };
+
   const getPerformanceColor = (diff) => {
     if (diff > 10) return 'text-green-600 bg-green-50';
     if (diff < -10) return 'text-red-600 bg-red-50';
@@ -108,43 +124,43 @@ const BenchmarkTool = () => {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">App Profilini Oluştur</h2>
-              <p className="text-gray-600 mb-6">Uygulamanızı industry benchmarks ile karşılaştırmak için temel bilgileri girin.</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Create App Profile</h2>
+              <p className="text-gray-600 mb-6">Enter basic information to compare your app against industry benchmarks.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">App Kategorisi</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">App Category</label>
                 <select 
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   value={formData.category}
                   onChange={(e) => setFormData({...formData, category: e.target.value})}
                 >
-                  <option value="">Kategori seçin</option>
+                  <option value="">Select category</option>
                   {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Ana Pazar</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Primary Market</label>
                 <select 
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   value={formData.region}
                   onChange={(e) => setFormData({...formData, region: e.target.value})}
                 >
-                  <option value="">Bölge seçin</option>
+                  <option value="">Select region</option>
                   {regions.map(region => <option key={region} value={region}>{region}</option>)}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Subscription Planı</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Subscription Plan</label>
                 <select 
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   value={formData.planType}
                   onChange={(e) => setFormData({...formData, planType: e.target.value})}
                 >
-                  <option value="">Plan türü seçin</option>
+                  <option value="">Select plan type</option>
                   <option value="weekly">Weekly</option>
                   <option value="monthly">Monthly</option>
                   <option value="annual">Annual</option>
@@ -152,7 +168,7 @@ const BenchmarkTool = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat ($)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Price ($)</label>
                 <input 
                   type="number"
                   step="0.01"
@@ -171,7 +187,7 @@ const BenchmarkTool = () => {
                 checked={formData.hasTrial}
                 onChange={(e) => setFormData({...formData, hasTrial: e.target.checked})}
               />
-              <label className="ml-2 block text-sm text-gray-700">Free trial sunuyorum</label>
+              <label className="ml-2 block text-sm text-gray-700">I offer free trial</label>
             </div>
 
             <button
@@ -179,7 +195,7 @@ const BenchmarkTool = () => {
               onClick={() => setStep(2)}
               disabled={!formData.category || !formData.region || !formData.planType || !formData.price}
             >
-              Devam Et <ArrowRight className="inline h-4 w-4 ml-2" />
+              Continue <ArrowRight className="inline h-4 w-4 ml-2" />
             </button>
           </div>
         );
@@ -188,8 +204,8 @@ const BenchmarkTool = () => {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Performans Metriklerini Girin</h2>
-              <p className="text-gray-600 mb-6">Mevcut performansınızı industry ile karşılaştırabilmek için key metrics'leri paylaşın.</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Enter Performance Metrics</h2>
+              <p className="text-gray-600 mb-6">Share your key metrics to compare your current performance with the industry.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -203,11 +219,11 @@ const BenchmarkTool = () => {
                   value={formData.conversionRate}
                   onChange={(e) => setFormData({...formData, conversionRate: e.target.value})}
                 />
-                <p className="text-xs text-gray-500 mt-1">Trial'dan paid'e geçiş oranı</p>
+                <p className="text-xs text-gray-500 mt-1">Trial to paid conversion rate</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">12-Aylık LTV ($)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">12-Month LTV ($)</label>
                 <input 
                   type="number"
                   step="0.01"
@@ -236,7 +252,7 @@ const BenchmarkTool = () => {
               onClick={() => setStep(3)}
               disabled={!formData.conversionRate || !formData.ltv || !formData.refundRate}
             >
-              Benchmark Analizi Yap <ArrowRight className="inline h-4 w-4 ml-2" />
+              Run Benchmark Analysis <ArrowRight className="inline h-4 w-4 ml-2" />
             </button>
           </div>
         );
@@ -245,16 +261,16 @@ const BenchmarkTool = () => {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Email Adresinizi Girin</h2>
-              <p className="text-gray-600 mb-6">Detaylı benchmark raporunu almak ve gelecekteki industry insights'ları kaçırmamak için email adresinizi paylaşın.</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Enter Your Email</h2>
+              <p className="text-gray-600 mb-6">Share your email to receive the detailed benchmark report and not miss future industry insights.</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email Adresi</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
               <input 
                 type="email"
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="ornek@sirket.com"
+                placeholder="example@company.com"
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
               />
@@ -264,10 +280,10 @@ const BenchmarkTool = () => {
               <div className="flex">
                 <Mail className="h-5 w-5 text-blue-400 mt-0.5 mr-3" />
                 <div>
-                  <h3 className="text-sm font-medium text-blue-800">Bonus İçerikler</h3>
+                  <h3 className="text-sm font-medium text-blue-800">Bonus Content</h3>
                   <p className="text-sm text-blue-700 mt-1">
-                    • Aylık industry trend updates<br/>
-                    • Kategori-specific optimization tips<br/>
+                    • Monthly industry trend updates<br/>
+                    • Category-specific optimization tips<br/>
                     • Exclusive webinar invitations
                   </p>
                 </div>
@@ -279,7 +295,7 @@ const BenchmarkTool = () => {
               onClick={calculateBenchmark}
               disabled={!formData.email}
             >
-              Raporumu Göster <ArrowRight className="inline h-4 w-4 ml-2" />
+              Show My Report <ArrowRight className="inline h-4 w-4 ml-2" />
             </button>
           </div>
         );
@@ -288,9 +304,9 @@ const BenchmarkTool = () => {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Benchmark Raporu</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Benchmark Report</h2>
               <p className="text-gray-600 mb-6">
-                {formData.category} kategorisinde {formData.region} pazarındaki performansınız
+                Your performance in {formData.category} category in {formData.region} market
               </p>
             </div>
 
@@ -358,27 +374,37 @@ const BenchmarkTool = () => {
 
             {/* Recommendations */}
             <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-lg">
-              <h3 className="font-bold text-lg mb-3">Öneriler</h3>
+              <h3 className="font-bold text-lg mb-3">Recommendations</h3>
               <ul className="space-y-2 text-sm">
                 {results.conversion.diff < -10 && (
-                  <li>• Conversion rate'inizi %{Math.abs(results.conversion.diff)} artırarak ayda ek gelir elde edebilirsiniz</li>
+                  <li>• You can generate additional monthly revenue by increasing your conversion rate by {Math.abs(results.conversion.diff)}%</li>
                 )}
                 {results.pricing.diff < -20 && (
-                  <li>• Fiyat artışı test etmeyi düşünün - market toleransı görünüyor</li>
+                  <li>• Consider testing a price increase - market shows tolerance</li>
                 )}
                 {results.ltv.diff < -15 && (
-                  <li>• LTV optimizasyonu için retention stratejilerinizi gözden geçirin</li>
+                  <li>• Review your retention strategies for LTV optimization</li>
                 )}
-                <li>• Adapty ile A/B testing yaparak bu metrikleri iyileştirebilirsiniz</li>
+                <li>• You can improve these metrics with A/B testing using Adapty</li>
               </ul>
             </div>
 
             <div className="bg-purple-600 text-white p-6 rounded-lg text-center">
-              <h3 className="text-lg font-bold mb-2">Bu Metrikleri Nasıl İyileştirirsiniz?</h3>
-              <p className="mb-4">Adapty ile paywalls'larınızı optimize edin, pricing test edin, ve revenue'nizi artırın.</p>
-              <button className="bg-white text-purple-600 px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors">
-                Demo Rezervasyonu Yap
-              </button>
+              <h3 className="text-lg font-bold mb-2">How to Improve These Metrics?</h3>
+              <p className="mb-4">Optimize your paywalls with Adapty, test pricing, and increase your revenue.</p>
+              <div className="space-y-3">
+                <button className="bg-white text-purple-600 px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors">
+                  Schedule Demo
+                </button>
+                <div>
+                  <button 
+                    onClick={resetForm}
+                    className="bg-purple-700 text-white px-6 py-2 rounded-lg font-medium hover:bg-purple-800 transition-colors"
+                  >
+                    Analyze Another App
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -394,7 +420,7 @@ const BenchmarkTool = () => {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">App Benchmark Tool</h1>
           <p className="text-xl text-gray-600">
-            Uygulamanızı $1.9B analiz verisine dayalı industry benchmarks ile karşılaştırın
+            Compare your app with industry benchmarks based on $1.9B analysis data
           </p>
         </div>
 
