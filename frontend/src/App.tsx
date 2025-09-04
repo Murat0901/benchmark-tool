@@ -80,38 +80,44 @@ const BenchmarkTool = () => {
   ];
 
   const calculateBenchmark = () => {
-    const { category, region, planType, price, conversionRate, ltv, refundRate } = formData;
+    // Show analyzing screen first
+    setStep(3.5);
     
-    const benchmarkPrice = BENCHMARKS.pricing[planType]?.[region] || 0;
-    const benchmarkConversion = BENCHMARKS.conversion[category]?.trialPaid || 0;
-    const benchmarkLTV = BENCHMARKS.ltv[category]?.[planType] || 0;
-    const benchmarkRefund = BENCHMARKS.refundRate[category] || 0;
+    // Simulate analysis time with animation
+    setTimeout(() => {
+      const { category, region, planType, price, conversionRate, ltv, refundRate } = formData;
+      
+      const benchmarkPrice = BENCHMARKS.pricing[planType]?.[region] || 0;
+      const benchmarkConversion = BENCHMARKS.conversion[category]?.trialPaid || 0;
+      const benchmarkLTV = BENCHMARKS.ltv[category]?.[planType] || 0;
+      const benchmarkRefund = BENCHMARKS.refundRate[category] || 0;
 
-    const results = {
-      pricing: {
-        user: parseFloat(price),
-        benchmark: benchmarkPrice,
-        diff: ((parseFloat(price) - benchmarkPrice) / benchmarkPrice * 100).toFixed(1)
-      },
-      conversion: {
-        user: parseFloat(conversionRate),
-        benchmark: benchmarkConversion,
-        diff: ((parseFloat(conversionRate) - benchmarkConversion) / benchmarkConversion * 100).toFixed(1)
-      },
-      ltv: {
-        user: parseFloat(ltv),
-        benchmark: benchmarkLTV,
-        diff: ((parseFloat(ltv) - benchmarkLTV) / benchmarkLTV * 100).toFixed(1)
-      },
-      refund: {
-        user: parseFloat(refundRate),
-        benchmark: benchmarkRefund,
-        diff: ((parseFloat(refundRate) - benchmarkRefund) / benchmarkRefund * 100).toFixed(1)
-      }
-    };
+      const results = {
+        pricing: {
+          user: parseFloat(price),
+          benchmark: benchmarkPrice,
+          diff: ((parseFloat(price) - benchmarkPrice) / benchmarkPrice * 100).toFixed(1)
+        },
+        conversion: {
+          user: parseFloat(conversionRate),
+          benchmark: benchmarkConversion,
+          diff: ((parseFloat(conversionRate) - benchmarkConversion) / benchmarkConversion * 100).toFixed(1)
+        },
+        ltv: {
+          user: parseFloat(ltv),
+          benchmark: benchmarkLTV,
+          diff: ((parseFloat(ltv) - benchmarkLTV) / benchmarkLTV * 100).toFixed(1)
+        },
+        refund: {
+          user: parseFloat(refundRate),
+          benchmark: benchmarkRefund,
+          diff: ((parseFloat(refundRate) - benchmarkRefund) / benchmarkRefund * 100).toFixed(1)
+        }
+      };
 
-    setResults(results);
-    setStep(4);
+      setResults(results);
+      setStep(4);
+    }, 3000); // 3 second animation
   };
 
   const resetForm = () => {
@@ -326,6 +332,73 @@ const BenchmarkTool = () => {
           </div>
         );
 
+      case 3.5:
+        return (
+          <div className="space-y-8">
+            {/* Analyzing Animation */}
+            <div className="text-center py-16">
+              {/* Main spinning circle */}
+              <div className="relative mx-auto mb-8">
+                <div className="w-32 h-32 mx-auto relative">
+                  {/* Outer spinning ring */}
+                  <div className="absolute inset-0 border-4 border-purple-200 rounded-full animate-spin">
+                    <div className="w-4 h-4 bg-purple-600 rounded-full absolute -top-2 left-1/2 transform -translate-x-1/2"></div>
+                  </div>
+                  {/* Inner pulsing circle */}
+                  <div className="absolute inset-4 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full animate-pulse flex items-center justify-center">
+                    <TrendingUp className="h-12 w-12 text-white animate-bounce" />
+                  </div>
+                </div>
+                
+                {/* Floating data points */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-purple-400 rounded-full animate-ping"></div>
+                  <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-indigo-400 rounded-full animate-ping" style={{animationDelay: '0.5s'}}></div>
+                  <div className="absolute bottom-1/4 left-1/3 w-2.5 h-2.5 bg-purple-300 rounded-full animate-ping" style={{animationDelay: '1s'}}></div>
+                  <div className="absolute bottom-1/3 right-1/3 w-3 h-3 bg-indigo-300 rounded-full animate-ping" style={{animationDelay: '1.5s'}}></div>
+                </div>
+              </div>
+
+              {/* Analyzing text */}
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Analyzing Your App Performance
+              </h2>
+              <p className="text-lg text-gray-600 mb-8">
+                Comparing your metrics against $1.9B industry data...
+              </p>
+
+              {/* Progress steps */}
+              <div className="max-w-md mx-auto space-y-3">
+                <div className="flex items-center text-left">
+                  <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center mr-4 animate-pulse">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                  <span className="text-gray-700">Processing benchmark data...</span>
+                </div>
+                <div className="flex items-center text-left" style={{animationDelay: '1s'}}>
+                  <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center mr-4 animate-pulse" style={{animationDelay: '1s'}}>
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                  <span className="text-gray-700">Calculating performance metrics...</span>
+                </div>
+                <div className="flex items-center text-left" style={{animationDelay: '2s'}}>
+                  <div className="w-6 h-6 bg-purple-400 rounded-full flex items-center justify-center mr-4 animate-pulse" style={{animationDelay: '2s'}}>
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                  <span className="text-gray-700">Generating recommendations...</span>
+                </div>
+              </div>
+
+              {/* Decorative elements */}
+              <div className="mt-12 flex justify-center space-x-4">
+                <div className="w-16 h-1 bg-gradient-to-r from-purple-600 to-transparent rounded-full animate-pulse"></div>
+                <div className="w-16 h-1 bg-gradient-to-r from-purple-500 to-transparent rounded-full animate-pulse" style={{animationDelay: '0.3s'}}></div>
+                <div className="w-16 h-1 bg-gradient-to-r from-purple-400 to-transparent rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
+              </div>
+            </div>
+          </div>
+        );
+
       case 4:
         return (
           <div className="space-y-6">
@@ -455,12 +528,18 @@ const BenchmarkTool = () => {
           {[1, 2, 3, 4].map((num) => (
             <div key={num} className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                step >= num ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-500'
+                step >= num || (step === 3.5 && num >= 3) ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-500'
               }`}>
-                {num}
+                {step === 3.5 && num === 4 ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  num
+                )}
               </div>
               {num < 4 && (
-                <div className={`w-24 h-1 mx-2 ${step > num ? 'bg-purple-600' : 'bg-gray-200'}`} />
+                <div className={`w-24 h-1 mx-2 ${
+                  step > num || (step === 3.5 && num >= 3) ? 'bg-purple-600' : 'bg-gray-200'
+                }`} />
               )}
             </div>
           ))}
