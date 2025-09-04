@@ -54,6 +54,30 @@ const BenchmarkTool = () => {
   const categories = ['Education', 'Health & Fitness', 'Lifestyle', 'Photo & Video', 'Productivity', 'Utilities'];
   const regions = ['US', 'Europe', 'APAC', 'LATAM', 'MEA'];
   const planTypes = ['weekly', 'monthly', 'annual'];
+  
+  // Apple App Store pricing tiers (USD)
+  const priceTiers = [
+    { label: '$0.99', value: 0.99 },
+    { label: '$1.99', value: 1.99 },
+    { label: '$2.99', value: 2.99 },
+    { label: '$3.99', value: 3.99 },
+    { label: '$4.99', value: 4.99 },
+    { label: '$5.99', value: 5.99 },
+    { label: '$6.99', value: 6.99 },
+    { label: '$7.99', value: 7.99 },
+    { label: '$8.99', value: 8.99 },
+    { label: '$9.99', value: 9.99 },
+    { label: '$12.99', value: 12.99 },
+    { label: '$14.99', value: 14.99 },
+    { label: '$19.99', value: 19.99 },
+    { label: '$24.99', value: 24.99 },
+    { label: '$29.99', value: 29.99 },
+    { label: '$39.99', value: 39.99 },
+    { label: '$49.99', value: 49.99 },
+    { label: '$59.99', value: 59.99 },
+    { label: '$79.99', value: 79.99 },
+    { label: '$99.99', value: 99.99 }
+  ];
 
   const calculateBenchmark = () => {
     const { category, region, planType, price, conversionRate, ltv, refundRate } = formData;
@@ -168,15 +192,17 @@ const BenchmarkTool = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Price ($)</label>
-                <input 
-                  type="number"
-                  step="0.01"
+                <label className="block text-sm font-medium text-gray-700 mb-2">Price (USD)</label>
+                <select 
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="9.99"
                   value={formData.price}
                   onChange={(e) => setFormData({...formData, price: e.target.value})}
-                />
+                >
+                  <option value="">Select price tier</option>
+                  {priceTiers.map(tier => (
+                    <option key={tier.value} value={tier.value}>{tier.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
